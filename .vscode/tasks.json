@@ -9,34 +9,6 @@
             "problemMatcher": [
                 "$msCompile"
             ]
-        },
-        {
-            "type": "npm",
-            "script": "playground",
-            "problemMatcher": [
-                "$msCompile"
-            ]
-        },
-        {
-            "type": "npm",
-            "script": "itest",
-            "problemMatcher": [
-                "$msCompile"
-            ]
-        },
-        {
-            "type": "npm",
-            "script": "auth",
-            "problemMatcher": [
-                "$msCompile"
-            ]
-        },
-        {
-            "type": "npm",
-            "script": "feeder",
-            "problemMatcher": [
-                "$msCompile"
-            ]
         }
     ]
 }
