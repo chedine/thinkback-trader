@@ -19,12 +19,15 @@ export function getAccessToken(requestToken) {
             console.log(err);
         });
 }
+
+function main(requestToken){
+    if(input.length === 0){
+        console.log("Request token is expected. ")
+        console.log("Sample usage: node accesstoken myrequesttokenhere ")
+    }
+    else{
+        getAccessToken(requestToken);  
+    }
+}
 const input = process.argv.slice(2);
-if(input.length === 0){
-    console.log("Request token is expected. ")
-    console.log("Sample usage: node accesstoken myrequesttokenhere ")
-}
-else{
-    getAccessToken(input[0]);  
-}
-//getAccessToken("Etr7YaKCDgFvRVwUBTeSih02AnqnZkPJ");
+main(input[0]);

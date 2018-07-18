@@ -1,6 +1,7 @@
 import * as moment from "moment";
 import * as R from "ramda";
 import * as nfo from "./nfo";
+import * as datelib from "./../lib/dateandtime";
 import { FNO, OptionPref, FNOWatchListItem, OptionType, ScripType } from "../../types/types";
 
 
@@ -36,7 +37,7 @@ function getOptionsRange(median: number, multiple: number, noOfStrikes: number):
 
 function buildOptionsSymbol(symbol: string, rangeOfStrikes: number[], expiryDate: string): FNOWatchListItem[] {
     const optionSymbolList = new Array<FNOWatchListItem>();
-    const expiryDt = nfo.dateToString("YYMMM", nfo.isoDateStrToDate(expiryDate)).toUpperCase();
+    const expiryDt = datelib.dateToString("YYYYMMM", datelib.isoDateStrToDate(expiryDate)).substring(2).toUpperCase();
     const makeWatchListItem = (symbol) => {
         const optionSymbol: FNOWatchListItem = {
             symbol: `NFO:NIFTY${expiryDt}${rangeOfStrikes[i]}CE`,
@@ -59,36 +60,46 @@ function buildOptionsSymbol(symbol: string, rangeOfStrikes: number[], expiryDate
  * @param futures 
  */
 export function buildFNOWatchList(futures: FNO[]): FNOWatchListItem[] {
-    const watchList = new Array<FNOWatchListItem>();
+    let watchList = new Array<FNOWatchListItem>();
     futures.forEach(fut => {
         const opPreference = getOptionsPreference(fut.underlying);
         const multiple = opPreference.multiple;
         const atmPrice = Math.ceil(fut.close / multiple) * multiple;
         const optionsList: FNOWatchListItem[] = buildOptionsSymbol(fut.underlying,
-            getOptionsRange(atmPrice, multiple, opPreference.strikes), dateToISOString(fut.expiryDate));
+            getOptionsRange(atmPrice, multiple, opPreference.strikes), datelib.dateToISOString(moment(fut.expiryDate)));
         
-        watchList.concat(optionsList);
+        watchList = watchList.concat(optionsList);
         watchList.push({
             symbol: fut.symbol,
             type: ScripType.Future,
-            expiryDate: dateToISOString(fut.expiryDate),
+            expiryDate: datelib.dateToISOString(moment(fut.expiryDate)),
             underlying: fut.underlying
         });
         //TODO: Push future contract details as well.
     });
     return watchList;
 }
-export const dateStrToDate = R.curry((format: string, dateStr: string) =>
-    moment(dateStr, format));
-
-export const isoDateStrToDate = dateStrToDate("YYYYMMDD");
-
-export const dateToString = R.curry((format: string, date: moment.Moment) =>
-    date.format(format));
-
-export const dateToISOString = dateToString("YYYYMMDD");
 
 export const symbolizeFuture = function (underlying: string, expiryDate: moment.Moment){
     const dateInYYMON = expiryDate.format("YYMMM").toUpperCase();
     return `NFO:${underlying}${dateInYYMON}FUT`;
+}
+
+export function makeFuture (underlying: string, expiryDate: moment.Moment, kiteResponse ): FNO{
+    return {
+        expiryDate : datelib.encodeDate(expiryDate),
+        expiryDateTs : expiryDate.valueOf(),
+        underlying : underlying,
+        open : kiteResponse.ohlc.open,
+        low : kiteResponse.ohlc.low,
+        high : kiteResponse.ohlc.high,
+        close : kiteResponse.ohlc.close,
+        type : ScripType.Future,
+        tradeDate : datelib.encodeDate(kiteResponse.last_trade_time),
+        tradeHour : datelib.encodeTime(kiteResponse.last_trade_time),
+        tradeDateTs : kiteResponse.last_trade_time.getTime(),
+        vol : kiteResponse.volume,
+        oi : kiteResponse.oi,
+        symbol : kiteResponse.symbol
+    }
 }

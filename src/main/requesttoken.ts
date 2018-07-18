@@ -1,12 +1,12 @@
-import * as zerodha from "./../kite/puppet"
 import express = require("express");
 import bodyparser = require("body-parser");
-const { Identity, Maybe, Either, Future, IO } = require("ramda-fantasy");
-import * as env from "./env";
+
+import * as e from "./env";
 import * as web from "./../web/webautomation";
 
-const user = env.env().user;
-const port = env.env().port;
+const env = e.env();
+const user = env.user;
+const port = env.port;
 /**
  * Basic routes. Needed mainly for the handshake(login) with Zerodha.
  * Zerodha redirects the oauth to the redirect url with the auth token.
@@ -19,15 +19,6 @@ export const router = () => {
         response.json({
             echo: "Hello from Auth server!"
         })
-    });
-
-    app.get("/token", async (request, response) => {
-        const userName = request.query.user;
-        console.log("Logging in for " + userName);
-        fetchLoginToken(user).fork(
-            error => response.json({ status: "fail", msg: `user ${userName} not found in registry`, err: error }), // TODO: remove logging error into the response
-            results => response.json(JSON.parse(results))
-        );
     });
 
     // http://127.0.0.1:3000/callback?status=success&request_token=something
@@ -51,17 +42,14 @@ function closeServer(server) {
  * 
  * @param port 
  */
-function setupZerodhaServer(port) {
+async function setupZerodhaServer(port) {
     const callbackServer = router();
     const callbackServerInst = callbackServer.listen(port, () => {
         console.log(`Zerodha callback server started on port ${port}`)
     });
     process.on('SIGINT', () => closeServer(callbackServerInst));
     process.on('SIGTERM', () => closeServer(callbackServerInst));
-}
-
-function fetchLoginToken(user) {
-    return zerodha.login(user)
+    return callbackServer;
 }
 
 async function extractRequestToken(browser, page){
@@ -69,16 +57,18 @@ async function extractRequestToken(browser, page){
     await browser.close();
     return response;
 }
-async function fetchLoginToken1(user) {
-    const browserSession = await web.initBrowserSession(false, "https://kite.trade/connect/login?api_key=iz0ob9zohb3y2248");
+
+async function fetchLoginToken(user) {
+    const browserSession = await web.initBrowserSession(env.runheadless, env.kiteURL);
     return await web.loginToZerodha(browserSession, user, extractRequestToken);
 }
 
 async function main() {
     console.log("Trader cockpit launching !!");
-    setupZerodhaServer(port);
-    //fetchLoginToken(user).fork(console.log, console.log);
-    return await fetchLoginToken1(user);
+    const server = await setupZerodhaServer(port);
+    const token = await fetchLoginToken(user);
+    //await server.close();
+    return token;
 }
 /**
  * Script used to fetch request token by auto logging into Zerodha

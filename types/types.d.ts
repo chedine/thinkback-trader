@@ -38,18 +38,20 @@ interface Scrip {
     high: number,
     close: number,
     type: ScripType,
-    tradeDate: Moment,
+    tradeDate: number,
+    tradeDateTs: number,
+    tradeHour: number,
     vol?: number,
     oi?: number,
     symbol: string
 }
 
 interface FNO extends Scrip {
-    expiryDate: Moment,
+    expiryDate: number,
+    expiryDateTs: number
 }
 
 interface Option extends FNO {
-    expiryDate: Moment,
     strike?: number,
     opType: OptionType,
     greeks: OptionGreek,

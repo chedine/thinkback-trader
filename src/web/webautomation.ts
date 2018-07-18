@@ -65,6 +65,7 @@ const answer2FA = async function(page, user: User){
     return matchingResponse;
 }
 export const loginToZerodha = async function (browserSession, user: User, callback? : Function) {
+    console.log("Logging into Kite");
     const {browser, page} = browserSession; //await initBrowserSession(isHeadless, url);
     const selectors = elementLocators();
     await inputInto(selectors.userNameFieldSelector, user.name,page);
