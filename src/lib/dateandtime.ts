@@ -30,3 +30,7 @@ export const encodeTime = (moment: moment.Moment): number => {
 export const dateAsYYMON = (moment: moment.Moment): string => {
     return moment.format("YYMMM").toUpperCase();
 }
+
+export const tsToMoment = (ts: number): moment.Moment => {
+    return moment(ts);
+}

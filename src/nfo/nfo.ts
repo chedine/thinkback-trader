@@ -4,11 +4,10 @@ import * as nfo from "./nfo";
 import * as datelib from "./../lib/dateandtime";
 import { FNO, OptionPref, FNOWatchListItem, OptionType, ScripType } from "../../types/types";
 
-
 const optionsPreferences = {
     "NIFTY": {
         distance: 100,
-        strikes: 10,
+        strikes: 9,
         multiple: 100
     },
     "BANKNIFTY": {
@@ -35,21 +34,22 @@ function getOptionsRange(median: number, multiple: number, noOfStrikes: number):
     return range;
 }
 
-function buildOptionsSymbol(symbol: string, rangeOfStrikes: number[], expiryDate: string): FNOWatchListItem[] {
+function buildOptionsSymbol(underlying: string, rangeOfStrikes: number[], expiryDate: moment.Moment): FNOWatchListItem[] {
     const optionSymbolList = new Array<FNOWatchListItem>();
-    const expiryDt = datelib.dateToString("YYYYMMM", datelib.isoDateStrToDate(expiryDate)).substring(2).toUpperCase();
-    const makeWatchListItem = (symbol) => {
+    const expiryDt = datelib.dateAsYYMON(expiryDate);
+
+    const makeWatchListItem = (symbol,type: ScripType) => {
         const optionSymbol: FNOWatchListItem = {
-            symbol: `NFO:NIFTY${expiryDt}${rangeOfStrikes[i]}CE`,
-            type: ScripType.Option,
-            expiryDate: expiryDate,
-            underlying: symbol
+            symbol: symbol,
+            type: type,
+            expiryDate: datelib.dateToISOString(expiryDate),
+            underlying: underlying
         }
         return optionSymbol;
     }
     for (var i = 0; i < rangeOfStrikes.length; i++) {
-        const ce: FNOWatchListItem = makeWatchListItem(`NFO:NIFTY${expiryDt}${rangeOfStrikes[i]}CE`);
-        const pe: FNOWatchListItem = makeWatchListItem(`NFO:NIFTY${expiryDt}${rangeOfStrikes[i]}PE`);
+        const ce: FNOWatchListItem = makeWatchListItem(`NFO:${underlying}${expiryDt}${rangeOfStrikes[i]}CE`, ScripType.CallOption);
+        const pe: FNOWatchListItem = makeWatchListItem(`NFO:${underlying}${expiryDt}${rangeOfStrikes[i]}PE`, ScripType.PutOption);
         optionSymbolList.push(ce);
         optionSymbolList.push(pe);
     };
@@ -66,16 +66,15 @@ export function buildFNOWatchList(futures: FNO[]): FNOWatchListItem[] {
         const multiple = opPreference.multiple;
         const atmPrice = Math.ceil(fut.close / multiple) * multiple;
         const optionsList: FNOWatchListItem[] = buildOptionsSymbol(fut.underlying,
-            getOptionsRange(atmPrice, multiple, opPreference.strikes), datelib.dateToISOString(moment(fut.expiryDate)));
+            getOptionsRange(atmPrice, multiple, opPreference.strikes), datelib.tsToMoment(fut.expiryDateTs));
         
         watchList = watchList.concat(optionsList);
         watchList.push({
             symbol: fut.symbol,
             type: ScripType.Future,
-            expiryDate: datelib.dateToISOString(moment(fut.expiryDate)),
+            expiryDate: datelib.dateToISOString(moment(fut.expiryDateTs)),
             underlying: fut.underlying
         });
-        //TODO: Push future contract details as well.
     });
     return watchList;
 }

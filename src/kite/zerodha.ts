@@ -111,7 +111,7 @@ async function main(accessToken) {
         const client = new makeKiteClient(apiKey, sessionHook);
         const datastore = await store.init();
         const nifty: FNOWatchListItem = {
-            symbol: nfo.symbolizeFuture("NIFTY", nfo.isoDateStrToDate("20180726")),
+            symbol: nfo.symbolizeFuture("NIFTY", datelib.isoDateStrToDate("20180726")),
             type: ScripType.Future,
             expiryDate: "20180726",
             underlying: "NIFTY"

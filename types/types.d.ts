@@ -20,12 +20,13 @@ type User = {
 }
 declare const enum ScripType {
     Future = 0,
-    Option = 1,
-    Stock = 2,
-    StockFuture = 3,
-    StockOption = 4,
-    CurrencyFuture = 5,
-    CurrencyOption = 6
+    CallOption = 1,
+    PutOption = 2,
+    Stock = 3,
+    StockFuture = 4,
+    StockOption = 5,
+    CurrencyFuture = 6,
+    CurrencyOption = 7
 }
 declare const enum OptionType {
     call = 0,

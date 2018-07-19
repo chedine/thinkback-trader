@@ -1,29 +1,68 @@
 var test = require('tape');
 import * as nfo from "./../../src/nfo/nfo";
- 
-test('options Symbol range test', function (t) {
-    t.plan(4);
-    const opRange = nfo.getOptionsRange(10500,100,2);
-    const expected = [10300,10400,10500,10600,10700];
-    t.equal(opRange.length, expected.length);
-    t.equal(opRange[0], expected[0]);
-    t.equal(opRange[4], expected[4]);
-    t.equal(opRange[2], expected[2]);
-});
+import * as dates from "./../../src/lib/dateandtime";
+import { FNO, ScripType } from "../../types/types";
 
-test('NFO Date Utils test', function (t) {
-    t.plan(1);
-    t.equal(nfo.dateToISOString(nfo.isoDateStrToDate("20180705")), "20180705");
-});
+test('NFO watchlist tests', function (t) {
+    t.plan(21);
+    const expDt = "20180726";
+    const expDate = dates.isoDateStrToDate(expDt);
 
-test('options Symbol make test', function (t) {
-    t.plan(5);
-    const opRange = nfo.getOptionsRange(10500,100,2);
-    const symbols = nfo.buildOptionsSymbol("NIFTY", opRange, "20180726");
-    //const expected = ["NIFTY18JUL10300CE",10400,10500,10600,10700];
-    t.equal(symbols.length, 10);
-    t.equal(symbols[0], "NFO:NIFTY18JUL10300CE");
-    t.equal(symbols[1], "NFO:NIFTY18JUL10300PE");
-    t.equal(symbols[2], "NFO:NIFTY18JUL10400CE");
-    t.equal(symbols[symbols.length-1], "NFO:NIFTY18JUL10700PE");
+    const tradeDt = "20180725";
+    const tradeDate = dates.isoDateStrToDate(expDt);
+    const future: FNO = {
+        expiryDate: dates.encodeDate(expDate),
+        close: 10570,
+        open: 10400,
+        high: 10900,
+        low: 10300,
+        expiryDateTs: expDate.valueOf(),
+        oi: 1,
+        symbol: "NFO:NIFTY18JULFUT",
+        tradeDate: dates.encodeDate(tradeDate),
+        tradeDateTs: tradeDate.valueOf(),
+        tradeHour: dates.encodeTime(tradeDate),
+        type: ScripType.Future,
+        underlying: "NIFTY",
+        vol: 100
+    };
+
+    const watchlist = nfo.buildFNOWatchList([future]);
+    const futureItm = watchlist.find(e => e.symbol === 'NFO:NIFTY18JULFUT');
+    const ceSample = watchlist.find(e => e.symbol === 'NFO:NIFTY18JUL11000CE');
+    const peSample = watchlist.find(e => e.symbol === 'NFO:NIFTY18JUL11000PE');
+
+    t.equals(39, watchlist.length);
+    t.equals(true, futureItm !== undefined);
+    if (futureItm !== undefined) {
+        t.equals("NIFTY", futureItm.underlying);
+    }
+    t.equals(true, ceSample !== undefined);
+    if (ceSample !== undefined) {
+        t.equals("NIFTY", ceSample.underlying);
+        t.equals(ScripType.CallOption, ceSample.type)
+        t.equals(expDt, ceSample.expiryDate);
+    }
+    
+    t.equals(true, peSample !== undefined);
+    if (peSample !== undefined) {
+        t.equals("NIFTY", peSample.underlying);
+        t.equals(ScripType.PutOption, peSample.type)
+        t.equals(expDt, peSample.expiryDate);
+    }
+    //Lower bound
+    t.equals(true, watchlist.find(e => e.symbol === 'NFO:NIFTY18JUL9700PE') !== undefined)
+    t.equals(true, watchlist.find(e => e.symbol === 'NFO:NIFTY18JUL9700CE') !== undefined)
+    //upper bound
+    t.equals(true, watchlist.find(e => e.symbol === 'NFO:NIFTY18JUL11500PE') !== undefined)
+    t.equals(true, watchlist.find(e => e.symbol === 'NFO:NIFTY18JUL11500CE') !== undefined)
+    //Lower bound is capped @ 9700
+    t.equals(true, watchlist.find(e => e.symbol === 'NFO:NIFTY18JUL9600PE') === undefined)
+    t.equals(true, watchlist.find(e => e.symbol === 'NFO:NIFTY18JUL9600CE') === undefined)
+    //Upper bound is capped @11500
+    t.equals(true, watchlist.find(e => e.symbol === 'NFO:NIFTY18JUL11600PE') === undefined)
+    t.equals(true, watchlist.find(e => e.symbol === 'NFO:NIFTY18JUL11600CE') === undefined)
+    //Median strike
+    t.equals(true, watchlist.find(e => e.symbol === 'NFO:NIFTY18JUL10500CE') !== undefined)
+    t.equals(true, watchlist.find(e => e.symbol === 'NFO:NIFTY18JUL10500PE') !== undefined)
 });
