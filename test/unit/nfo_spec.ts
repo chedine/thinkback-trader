@@ -4,7 +4,6 @@ import * as dates from "./../../src/lib/dateandtime";
 import { FNO, ScripType } from "../../types/types";
 
 test('NFO watchlist tests', function (t) {
-    t.plan(21);
     const expDt = "20180726";
     const expDate = dates.isoDateStrToDate(expDt);
 
@@ -65,4 +64,5 @@ test('NFO watchlist tests', function (t) {
     //Median strike
     t.equals(true, watchlist.find(e => e.symbol === 'NFO:NIFTY18JUL10500CE') !== undefined)
     t.equals(true, watchlist.find(e => e.symbol === 'NFO:NIFTY18JUL10500PE') !== undefined)
+    t.end();
 });

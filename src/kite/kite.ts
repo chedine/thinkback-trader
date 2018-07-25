@@ -18,7 +18,7 @@ export class KiteClient {
     }
 
     public getQuote = async function (symbolList: FNOWatchListItem[]): Promise<FNO[]> {
-        //["NFO:NIFTY18JUL10600CE", "NFO:NIFTY18JUL10700CE", "NSE:INDIA VIX"]
+        //["NFO:NIFTY18JUL10600CE", "NFO:NzzIFTY18JUL10700CE", "NSE:INDIA VIX"]
         const symbols = symbolList.map(item => item.symbol);
         const kiteResponse = await this.kc.getQuote(symbols);
         const extractor = this.extractFNOFromKiteResponse(kiteResponse);
@@ -30,7 +30,9 @@ export class KiteClient {
     }
 
     private extractFNOFromKiteResponse = R.curry((kiteResponse, item: FNOWatchListItem) => {
+        //console.log(" Response = ", kiteResponse);
         const response = kiteResponse[item.symbol]; //TODO: Can be null
+        response.scripType = item.type;
         response.symbol = item.symbol;
         return nfo.makeFuture(item.underlying, datelib.isoDateStrToDate(item.expiryDate), response);
     });
@@ -44,4 +46,5 @@ export const getKiteConnector = function(apiKey: string, accessToken: string){
         console.log("Default Session Expiry hook invoked !");
     };
     client.setAccessToken(accessToken);
+    return client;
 }

@@ -6,14 +6,14 @@ import { FNO, OptionPref, FNOWatchListItem, OptionType, ScripType } from "../../
 
 const optionsPreferences = {
     "NIFTY": {
-        distance: 100,
+        //distance: 100,
         strikes: 9,
         multiple: 100
     },
     "BANKNIFTY": {
-        distance: 50,
-        strikes: 15,
-        multiple: 50
+        //distance: 100,
+        strikes: 13,
+        multiple: 100
     }
 }
 const getOptionsPreference = function (underlying: string): OptionPref {
@@ -85,6 +85,8 @@ export const symbolizeFuture = function (underlying: string, expiryDate: moment.
 }
 
 export function makeFuture (underlying: string, expiryDate: moment.Moment, kiteResponse ): FNO{
+    //console.log("Making future for ", kiteResponse, expiryDate,datelib.encodeDate(kiteResponse.last_trade_time));
+    const last_trade_time = datelib.jsDateToMoment(kiteResponse.last_trade_time);
     return {
         expiryDate : datelib.encodeDate(expiryDate),
         expiryDateTs : expiryDate.valueOf(),
@@ -93,9 +95,9 @@ export function makeFuture (underlying: string, expiryDate: moment.Moment, kiteR
         low : kiteResponse.ohlc.low,
         high : kiteResponse.ohlc.high,
         close : kiteResponse.ohlc.close,
-        type : ScripType.Future,
-        tradeDate : datelib.encodeDate(kiteResponse.last_trade_time),
-        tradeHour : datelib.encodeTime(kiteResponse.last_trade_time),
+        type : kiteResponse.scripType,
+        tradeDate : datelib.encodeDate(last_trade_time),
+        tradeHour : datelib.encodeTime(last_trade_time),
         tradeDateTs : kiteResponse.last_trade_time.getTime(),
         vol : kiteResponse.volume,
         oi : kiteResponse.oi,
