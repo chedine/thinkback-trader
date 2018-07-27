@@ -25,7 +25,8 @@
     "ramda-fantasy": "^0.8.0",
     "redbird": "^0.6.15",
     "reflect-metadata": "^0.1.10",
-    "rethinkdb": "^2.3.3"
+    "rethinkdb": "^2.3.3",
+    "roarr": "^2.5.0"
   },
   "devDependencies": {
     "@types/chai": "^4.1.3",

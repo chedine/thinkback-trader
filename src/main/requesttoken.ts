@@ -32,8 +32,8 @@ export const router = () => {
     return app;
 }
 
-function closeServer(server) {
-    server.close(function () {
+async function closeServer(server) {
+    await server.close(function () {
         console.log('Shutting down Zerodha callback server!');
         process.exit();
     });
@@ -49,7 +49,7 @@ async function setupZerodhaServer(port) {
     });
     process.on('SIGINT', () => closeServer(callbackServerInst));
     process.on('SIGTERM', () => closeServer(callbackServerInst));
-    return callbackServer;
+    return callbackServerInst;
 }
 
 async function extractRequestToken(browser, page){
@@ -68,6 +68,7 @@ async function main() {
     const server = await setupZerodhaServer(port);
     const token = await fetchLoginToken(user);
     //await server.close();
+    await closeServer(server);
     return token;
 }
 /**
