@@ -20,8 +20,9 @@ export const config = function () {
             ]
         },
         feedInterval: 1000 * 60 * 5,
-      //      feedInterval: 1000 * 5,
+    //  feedInterval: 1000 * 5,
         port: 3000,
-        runHeadless: true
+        runHeadless: true,
+        testMode : false
     }
 }

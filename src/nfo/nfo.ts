@@ -85,11 +85,13 @@ export const symbolizeFuture = function (underlying: string, expiryDate: moment.
 }
 
 export function makeFuture (underlying: string, expiryDate: moment.Moment, kiteResponse ): FNO{
-    //console.log("Making future for ", kiteResponse, expiryDate,datelib.encodeDate(kiteResponse.last_trade_time));
-    const last_trade_time = datelib.jsDateToMoment(kiteResponse.last_trade_time);
-    return {
-        expiryDate : datelib.encodeDate(expiryDate),
-        expiryDateTs : expiryDate.valueOf(),
+   // console.log("Making future for ", kiteResponse);//, expiryDate,datelib.encodeDate(kiteResponse.last_trade_time));
+    const lastTradeTime = kiteResponse.last_trade_time ? kiteResponse.last_trade_time : kiteResponse.timestamp;
+    const last_trade_time = datelib.jsDateToMoment(lastTradeTime);
+
+    const future= {
+        expiryDate : expiryDate.isValid()? datelib.encodeDate(expiryDate): 0,
+        expiryDateTs : expiryDate.isValid()? expiryDate.valueOf(): 0,
         underlying : underlying,
         open : kiteResponse.ohlc.open,
         low : kiteResponse.ohlc.low,
@@ -98,9 +100,11 @@ export function makeFuture (underlying: string, expiryDate: moment.Moment, kiteR
         type : kiteResponse.scripType,
         tradeDate : datelib.encodeDate(last_trade_time),
         tradeHour : datelib.encodeTime(last_trade_time),
-        tradeDateTs : kiteResponse.last_trade_time.getTime(),
-        vol : kiteResponse.volume,
-        oi : kiteResponse.oi,
+        tradeDateTs : lastTradeTime, //kiteResponse.last_trade_time.getTime(),
+        vol : kiteResponse.volume !== undefined? kiteResponse.volume : 0,
+        oi : kiteResponse.oi !== undefined? kiteResponse.oi : 0,
         symbol : kiteResponse.symbol
     }
+//console.log(future);
+    return future;
 }

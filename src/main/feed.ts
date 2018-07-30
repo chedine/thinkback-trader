@@ -1,19 +1,19 @@
 import * as R from "ramda";
 import * as datelib from "./../lib/dateandtime";
 import { ScripType, FNOWatchListItem, FNO } from "../../types/types";
-import {KiteClient, getKiteConnector} from "./../kite/kite";
+import { KiteClient, getKiteConnector } from "./../kite/kite";
 const KiteConnect = require("kiteconnect").KiteConnect;
 import * as ENV from "./../main/env";
 import * as cfg from "./../lib/config";
 import * as nfo from "./../nfo/nfo";
 import * as store from "./../store/db";
 
-const buildWatchListItem = R.curry((type: ScripType, expiry: string, 
+const buildWatchListItem = R.curry((type: ScripType, expiry: string,
     underlying: string): FNOWatchListItem => {
     return {
-        symbol : nfo.symbolizeFuture(underlying, datelib.isoDateStrToDate(expiry)),
-        type : type,
-        expiryDate : expiry,
+        symbol: nfo.symbolizeFuture(underlying, datelib.isoDateStrToDate(expiry)),
+        type: type,
+        expiryDate: expiry,
         underlying: underlying
     }
 });
@@ -21,29 +21,33 @@ const buildWatchListItem = R.curry((type: ScripType, expiry: string,
 const buildFNOWatchList = (config): FNOWatchListItem[] => {
     const futuresToWatch = config.watchlist.futures;
     const builder = buildWatchListItem(ScripType.Future);
-    return futuresToWatch.map(f => builder(f.expiry, f.name))
+    const fnoPlaylist =  futuresToWatch.map(f => builder(f.expiry, f.name));
+    return fnoPlaylist;
 }
 
 const schedulePolling = R.curry((interval: number, kiteClient: KiteClient, onComplete, watchlist: FNOWatchListItem[]) => {
-    return setInterval(async function(){
+    return setInterval(async function () {
         console.log("Polling ...");
         const response = await kiteClient.getQuote(watchlist);
+        console.log("REceived response");
         onComplete(response, interval);
     }, interval);
 });
 
 const handleFeedData = R.curry(async (store: any, response: FNO[], interval) => {
     console.log(response);
-    await store.insertTradeData(response);
-    console.log("Data inserted !!");
-    if(response[0].tradeHour === 153000){
+    if (!cfg.config().testMode) {
+        await store.insertTradeData(response);
+        console.log("Data inserted !!");
+    }
+    if (response[0].tradeHour === 153000) {
         //Closing bell
         console.log("Closing hour reached. Shutting down Feed service !!");
         clearInterval(interval);
     }
 });
 
-export async function main(accessToken: string,config) {
+export async function main(accessToken: string, config) {
     //Inits
     const env = ENV.env();
     const kiteConn = getKiteConnector(env.apiKey, accessToken);
@@ -56,6 +60,14 @@ export async function main(accessToken: string,config) {
     console.log("Preparing to collect feed ...");
     const baseData = await kiteClient.getQuote(symbolsToWatch);
     const fullWatchList = nfo.buildFNOWatchList(baseData);
+    const vix: FNOWatchListItem = {
+         symbol : "NSE:INDIA VIX",
+        type : ScripType.Index,
+        underlying : "VIX",
+        expiryDate : ""
+
+    }
+    fullWatchList.push(vix);
     const feedSchedule = schedulePolling(config.feedInterval, kiteClient, feedHandler);
 
     //Schedule to collect data feed for the complete watchlist.

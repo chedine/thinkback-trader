@@ -26,7 +26,8 @@ declare const enum ScripType {
     StockFuture = 4,
     StockOption = 5,
     CurrencyFuture = 6,
-    CurrencyOption = 7
+    CurrencyOption = 7,
+    Index = 8
 }
 declare const enum OptionType {
     call = 0,
