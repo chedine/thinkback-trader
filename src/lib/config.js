@@ -8,10 +8,10 @@ export const config = function () {
             {
                 name: "BANKNIFTY",
                 expiry: "20180802"
-            },
+            }, 
             {
                 name: "NIFTY",
-                expiry: "20180827"
+                expiry: "20180927"
             },
             {
                 name: "BANKNIFTY",
