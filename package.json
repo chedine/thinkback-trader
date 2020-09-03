@@ -20,7 +20,7 @@
     "kiteconnect": "^3.0.0",
     "moment": "^2.22.2",
     "pg": "^6.4.0",
-    "puppeteer": "^0.11.0",
+    "puppeteer": "^1.13.0",
     "ramda": "^0.25.0",
     "ramda-fantasy": "^0.8.0",
     "redbird": "^0.6.15",
